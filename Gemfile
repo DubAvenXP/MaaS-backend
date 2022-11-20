@@ -45,5 +45,9 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
   gem 'hirb', '~> 0.7.3'
+
+  # Faker is a library for generating fake data such as names, addresses, and phone numbers
+  gem 'faker', '~> 3.0'
+
 end
 

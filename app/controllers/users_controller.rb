@@ -1,19 +1,21 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: %i[ show update destroy ]
+  before_action :set_user, only: %i[show update destroy]
 
   def index
-    @users = User.all
-
-    render json: @users
+    render json: User.index
   end
-  
 
   def show
-    render json: @user
+    render json: @user.show
   end
 
   def create
-    @user = User.new(user_params)
+    @user = User.create(user_params)
+
+    if @user[:errors].present?
+      render json: @user[:errors], status: :unprocessable_entity
+      return
+    end
 
     if @user.save
       render json: @user, status: :created, location: @user
@@ -35,11 +37,12 @@ class UsersController < ApplicationController
   end
 
   private
-    def set_user
-      @user = User.find(params[:id])
-    end
 
-    def user_params
-      params.require(:user).permit(:email, :password, :password_confirmation)
-    end
+  def set_user
+    @user = User.find(params[:id])
+  end
+
+  def user_params
+    params.permit(:email, :password, :password_confirmation, :first_name, :last_name, :role)
+  end
 end
