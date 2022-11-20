@@ -19,7 +19,7 @@ class User < ApplicationRecord
                 last_name: user.profile.last_name,
                 email: user.email,
                 phone: user.profile.phone,
-                picture: user.profile.picture,
+                image: user.profile.image_url,
                 role: user.profile.role,
                 profile_id: user.profile.id
             }
@@ -33,7 +33,7 @@ class User < ApplicationRecord
             last_name: self.profile.last_name,
             email: self.email,
             phone: self.profile.phone,
-            picture: self.profile.picture,
+            image: self.profile.image_url,
             role: self.profile.role,
             profile_id: self.profile.id
         }
