@@ -1,0 +1,6 @@
+.git 
+node_modules
+/db/postgres_dadta
+.dockerignore
+docker-compose.yml
+Dockerfile
