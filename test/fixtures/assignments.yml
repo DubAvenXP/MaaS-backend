@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  start_at: 2022-11-21 00:50:23
+  end_at: 2022-11-21 00:50:23
+  deleted_at: 2022-11-21 00:50:23
+  user: one
+  shift: one
+
+two:
+  start_at: 2022-11-21 00:50:23
+  end_at: 2022-11-21 00:50:23
+  deleted_at: 2022-11-21 00:50:23
+  user: two
+  shift: two

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_21_004225) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_21_005023) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,18 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_004225) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "assignments", force: :cascade do |t|
+    t.datetime "start_at"
+    t.datetime "end_at"
+    t.datetime "deleted_at"
+    t.bigint "user_id", null: false
+    t.bigint "shift_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shift_id"], name: "index_assignments_on_shift_id"
+    t.index ["user_id"], name: "index_assignments_on_user_id"
   end
 
   create_table "availabilities", force: :cascade do |t|
@@ -108,6 +120,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_004225) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "assignments", "shifts"
+  add_foreign_key "assignments", "users"
   add_foreign_key "availabilities", "users"
   add_foreign_key "profiles", "users"
   add_foreign_key "services", "clients"
