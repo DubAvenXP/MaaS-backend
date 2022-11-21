@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  start_time: MyString
+  end_time: MyString
+  day: 1
+  active: false
+  deleted_at: 2022-11-21 00:42:25
+  service: one
+
+two:
+  start_time: MyString
+  end_time: MyString
+  day: 1
+  active: false
+  deleted_at: 2022-11-21 00:42:25
+  service: two

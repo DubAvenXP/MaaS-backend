@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_21_003222) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_21_004225) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,18 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_003222) do
     t.index ["client_id"], name: "index_services_on_client_id"
   end
 
+  create_table "shifts", force: :cascade do |t|
+    t.string "start_time"
+    t.string "end_time"
+    t.integer "day"
+    t.boolean "active"
+    t.datetime "deleted_at"
+    t.bigint "service_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["service_id"], name: "index_shifts_on_service_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
@@ -99,4 +111,5 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_003222) do
   add_foreign_key "availabilities", "users"
   add_foreign_key "profiles", "users"
   add_foreign_key "services", "clients"
+  add_foreign_key "shifts", "services"
 end
