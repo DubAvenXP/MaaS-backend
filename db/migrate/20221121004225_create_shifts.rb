@@ -4,7 +4,7 @@ class CreateShifts < ActiveRecord::Migration[7.0]
       t.string :start_time
       t.string :end_time
       t.integer :day
-      t.boolean :active
+      t.boolean :active, default: true
       t.datetime :deleted_at
       t.references :service, null: false, foreign_key: true
 

@@ -100,7 +100,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_005023) do
     t.string "start_time"
     t.string "end_time"
     t.integer "day"
-    t.boolean "active"
+    t.boolean "active", default: true
     t.datetime "deleted_at"
     t.bigint "service_id", null: false
     t.datetime "created_at", null: false
