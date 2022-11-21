@@ -1,6 +1,8 @@
 class User < ApplicationRecord
     
     has_one :profile, dependent: :destroy
+    has_many :availabilities, dependent: :destroy
+    has_many :assignments, dependent: :destroy
     
     validates :email, presence: true, uniqueness: true
     validates :password, presence: true, length: { minimum: 6 }
