@@ -56,11 +56,6 @@ class User < ApplicationRecord
         # if errors are greater than 0 return errors and stop the execution
         return validation if validation[:errors].count > 0
 
-        puts "************"
-        puts validation
-        puts "************"
-
-
         # create new user instance
         user = User.new({ email: params[:email], password: params[:password], password_confirmation: params[:password_confirmation] })
 
