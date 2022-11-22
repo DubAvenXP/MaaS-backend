@@ -1,5 +1,6 @@
 class User < ApplicationRecord
-    
+    include Utilities
+
     has_one :profile, dependent: :destroy
     has_many :availabilities, dependent: :destroy
     has_many :assignments, dependent: :destroy
@@ -9,6 +10,7 @@ class User < ApplicationRecord
     validates :password_confirmation, presence: true, length: { minimum: 6 }
     
     has_secure_password
+
 
     # get list all users
     def self.index
@@ -28,6 +30,8 @@ class User < ApplicationRecord
         end
     end
 
+
+    # return user with correct format
     def show
         {
             id: self.id,
@@ -42,33 +46,27 @@ class User < ApplicationRecord
     end
         
 
+
     # Creates a new user with a profile
     def self.create(params)
 
         # validate if first_name and last_name aren't nil
-        if params[:first_name].nil? || params[:last_name].nil?
-            errors = {}
+        validation = Utilities::validate_custom_fields({first_name: params[:first_name], last_name: params[:last_name]})
 
-            errors[:first_name] = ["first_name can't be blank"] if params[:first_name].nil?
-            errors[:last_name] = ["last_name can't be blank"]   if params[:last_name].nil?
-        
-            return { errors: { errors: errors } }
-        end
+        # if errors are greater than 0 return errors and stop the execution
+        return validation if validation[:errors].count > 0
+
+        puts "************"
+        puts validation
+        puts "************"
+
 
         # create new user instance
-        user = User.new({
-            email: params[:email],
-            password: params[:password],
-            password_confirmation: params[:password_confirmation],
-        })
+        user = User.new({ email: params[:email], password: params[:password], password_confirmation: params[:password_confirmation] })
 
         # create new profile instance
-        user.profile = Profile.new({
-            first_name: params[:first_name],
-            last_name: params[:last_name],
-        })
-        
-        
+        user.profile = Profile.new( { first_name: params[:first_name], last_name: params[:last_name] } )
+
         # assign role if it's present
         user.profile.role = Profile.roles[params[:role]] if params[:role].present?
 
