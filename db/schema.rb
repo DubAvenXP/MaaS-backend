@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_11_21_005023) do
+ActiveRecord::Schema[7.0].define(version: 2022_11_22_045436) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -61,6 +61,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_005023) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "service_id"
+    t.index ["service_id"], name: "index_availabilities_on_service_id"
     t.index ["user_id"], name: "index_availabilities_on_user_id"
   end
 
@@ -122,6 +124,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_21_005023) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "assignments", "shifts"
   add_foreign_key "assignments", "users"
+  add_foreign_key "availabilities", "services"
   add_foreign_key "availabilities", "users"
   add_foreign_key "profiles", "users"
   add_foreign_key "services", "clients"

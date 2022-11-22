@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-    include Utilities
+    include ErrorUtilities
 
     has_one :profile, dependent: :destroy
     has_many :availabilities, dependent: :destroy
@@ -51,7 +51,7 @@ class User < ApplicationRecord
     def self.create(params)
 
         # validate if first_name and last_name aren't nil
-        validation = Utilities::validate_custom_fields({first_name: params[:first_name], last_name: params[:last_name]})
+        validation = ErrorUtilities::validate_custom_fields({first_name: params[:first_name], last_name: params[:last_name]})
 
         # if errors are greater than 0 return errors and stop the execution
         return validation if validation[:errors].count > 0
