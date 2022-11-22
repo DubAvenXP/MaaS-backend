@@ -13,13 +13,13 @@ class ShiftsController < ApplicationController
 
 	# POST /shifts
 	def create
-		@shift = Shift.create(shift_params)
+		@shift = Shift.new(shift_params)
 
-		# if @shift.save
-		# 	respond_with_success(@shift, :created)
-		# else
-		# 	respond_with_errors(@shift)
-		# end
+		if @shift.save
+			respond_with_success(@shift, :created)
+		else
+			respond_with_errors(@shift)
+		end
 	end
 
 	# PATCH/PUT /shifts/1
