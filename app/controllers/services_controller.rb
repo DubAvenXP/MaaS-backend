@@ -1,51 +1,50 @@
 class ServicesController < ApplicationController
-  before_action :set_service, only: %i[ show update destroy ]
+	before_action :set_service, only: %i[ show update destroy ]
 
-  # GET /services
-  def index
-    @services = Service.all
+	# GET /services
+	def index
+		respond_with_success(Services.all)
+	end
 
-    render json: @services
-  end
+	# GET /services/1
+	def show
+		respond_with_success(@service)
+	end
 
-  # GET /services/1
-  def show
-    render json: @service
-  end
+	# POST /services
+	def create
+		@service = Service.new(service_params)
 
-  # POST /services
-  def create
-    @service = Service.new(service_params)
+		if @service.save
+			respond_with_success(@services, :created)
+		else
+			respond_with_errors(@service)
+		end
+	end
 
-    if @service.save
-      render json: @service, status: :created, location: @service
-    else
-      render json: @service.errors, status: :unprocessable_entity
-    end
-  end
+	# PATCH/PUT /services/1
+	def update
+		if @service.update(service_params)
+			respond_with_success(@services)
+		else
+			respond_with_errors(@service)
+		end
+	end
 
-  # PATCH/PUT /services/1
-  def update
-    if @service.update(service_params)
-      render json: @service
-    else
-      render json: @service.errors, status: :unprocessable_entity
-    end
-  end
+	# DELETE /services/1
+	def destroy
+		@service.destroy
+	end
 
-  # DELETE /services/1
-  def destroy
-    @service.destroy
-  end
+	private
+	
+	# Use callbacks to share common setup or constraints between actions.
+	def set_service
+		@service = Service.find(params[:id])
+	end
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_service
-      @service = Service.find(params[:id])
-    end
-
-    # Only allow a list of trusted parameters through.
-    def service_params
-      params.require(:service).permit(:name, :description, :start_at, :end_at, :deleted_at, :client_id)
-    end
+	# Only allow a list of trusted parameters through.
+	def service_params
+		params.require(:service).permit(:name, :description, :start_at, :end_at, :client_id)
+	end
 end
