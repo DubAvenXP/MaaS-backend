@@ -15,9 +15,10 @@ class UsersController < ApplicationController
 	def create
 		@user = User.create(user_params)
 
+		
 		# custom validations
-		return respond_with_errors if @user[:errors].present? 
-
+		return respond_with_errors(@user) if @user[:errors].present? 
+		
 		if @user.save
 			respond_with_success(@user, :created)
 		else
