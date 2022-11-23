@@ -4,22 +4,30 @@ class Availability < ApplicationRecord
 	belongs_to :user
 	belongs_to :service
 
-	validates :start_at, presence: true, comparison: { less_than: :end_at, greater_or_equal_than: Date.current }, format: { with: /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}\z/, message: "must be in the format YYYY-MM-DD HH:MM" }
-	validates :end_at, presence: true, format: { with: /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}\z/, message: "must be in the format YYYY-MM-DD HH:MM" }
+	validates :start_at, presence: true, comparison: { less_than: :end_at, greater_or_equal_than: Date.current }
+	validates :end_at, presence: true
 
 
 	def self.create(availability)
 
+		
 		# get the service and user
 		service = Service.find(availability[:service_id])
 		user = User.find(availability[:user_id])
-
+		
 		# check if the service is active
 		return ErrorUtilities::generate_custom_error("service_id", "Service is inactive") unless service.active
 
+		
 		# create new datetime object with user's start_at and end_at
 		start_at = DateTime.parse(availability[:start_at])
 		end_at = DateTime.parse(availability[:end_at])
+
+		# check if the user has availability in the same day
+		return ErrorUtilities::generate_custom_error("start_at", "User can't be available 2 or more times at the same day") if user.availabilities.where(start_at: start_at.beginning_of_day..start_at.end_of_day).present?
+
+		# check if user has availability in the same time
+		# return ErrorUtilities::generate_custom_error("start_at", "User already has availability in the same time") if user.availabilities.where("start_at <= ? AND end_at >= ?", start_at, start_at).any?
 
 		# get day of the week of end_at
 		day_of_week_for_availability = start_at.strftime("%A").downcase

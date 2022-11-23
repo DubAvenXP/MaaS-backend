@@ -13,7 +13,10 @@ class AvailabilitiesController < ApplicationController
 
 	# POST /availabilities
 	def create
-		@availability = Availability.new(availability_params)
+		@availability = Availability.create(availability_params)
+
+		# custom validations
+		return respond_with_custom_errors(@availability) if @availability[:errors].present? 
 
 		if @availability.save
 			respond_with_success(@availability, :created)
@@ -44,6 +47,6 @@ class AvailabilitiesController < ApplicationController
 
 	# Only allow a list of trusted parameters through.
 	def availability_params
-		params.require(:availability).permit(:start_at, :end_at, :deleted_at, :user_id)
+		params.require(:availability).permit(:start_at, :end_at, :user_id, :service_id)
 	end
 end
