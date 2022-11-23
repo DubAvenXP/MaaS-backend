@@ -8,13 +8,13 @@ module Responder
         render :json => { :errors => errors }, :status => :not_found
     end
 
-    def respond_with_errors(payload)
-		errors = payload.errors
-		errors = ErrorUtilities::format_error(errors) if errors.present?
-		errors = payload[:errors] unless errors.present?
-		
-        render :json => errors, :status => :unprocessable_entity
+    def respond_with_custom_errors(payload)
+        render :json => payload, :status => :unprocessable_entity
     end
+
+	def respond_with_errors(data)
+		render :json => ErrorUtilities::format_error(data.errors) , :status => :unprocessable_entity
+	end
 
     def respond_with_success(payload, status = :ok)
         render :json => payload, :status => status

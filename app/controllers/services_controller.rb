@@ -16,7 +16,7 @@ class ServicesController < ApplicationController
 		@service = Service.new(service_params)
 
 		if @service.save
-			respond_with_success(@services, :created)
+			respond_with_success(@service, :created)
 		else
 			respond_with_errors(@service)
 		end

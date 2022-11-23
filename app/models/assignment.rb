@@ -1,4 +1,4 @@
 class Assignment < ApplicationRecord
-  belongs_to :user
-  belongs_to :shift
+	belongs_to :user
+	belongs_to :shift
 end

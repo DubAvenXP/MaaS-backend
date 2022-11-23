@@ -33,27 +33,27 @@ class Service < ApplicationRecord
 		}
 	end
 
+
+	# after create an availability or assignment
+	# verify if the service is still valid
+	def verify_services_status
+		# get 
+
+	end
+
+
 	private
 
+	# validate if client_id exists
 	def is_valid_client_id
-		# validate if client_id exists
 		errors.add("Invalid client id provided") unless Client.find(self.client_id).present?
 	end
 
+	# validate if date is valid
 	def is_valid_date
-		verify_date_regex = /^(\d{4})(\-)(0?[1-9]|1[012])(\-)(0?[1-9]|[12][0-9]|3[01])$/
-
-		start_at = self.start_at.to_s.split[0]
-		end_at = self.end_at.to_s.split[0]
-
-		errors.add(:start_at, "Date must be formatted correctly") unless end_at.match(verify_date_regex)
-		errors.add(:end_at, "Date must be formatted correctly") unless start_at.match(verify_date_regex)
-		puts "hello world #{start_at.match(verify_date_regex)}"
-		puts "hello world #{"2022-11-22".match(verify_date_regex)}"
-		puts "hello world #{start_at.class}"
-		puts "hello world"
-		puts "hello world"
-		puts "hello world #{end_at.match(verify_date_regex)}"
-		puts "hello world"
+		errors.add(:start_at, "Must be formatted correctly") unless self.start_at.class == ActiveSupport::TimeWithZone
+		errors.add(:end_at, "Must be formatted correctly") unless self.end_at.class == ActiveSupport::TimeWithZone
 	end
+
+	
 end
