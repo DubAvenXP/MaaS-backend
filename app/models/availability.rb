@@ -8,9 +8,8 @@ class Availability < ApplicationRecord
 	validates :end_at, presence: true
 
 
-	def self.create(availability)
+	def self.upsert(availability, id)
 
-		
 		# get the service and user
 		service = Service.find(availability[:service_id])
 		user = User.find(availability[:user_id])
@@ -23,17 +22,33 @@ class Availability < ApplicationRecord
 		start_at = DateTime.parse(availability[:start_at])
 		end_at = DateTime.parse(availability[:end_at])
 
-		# check if the user has availability in the same day
-		return ErrorUtilities::generate_custom_error("start_at", "User can't be available 2 or more times at the same day") if user.availabilities.where(start_at: start_at.beginning_of_day..start_at.end_of_day).present?
+		if id.nil?
+			# check if the user has availability in the same day
+			return ErrorUtilities::generate_custom_error("start_at", "User can't be available 2 or more times at the same day") if user.availabilities.where(start_at: start_at.beginning_of_day..start_at.end_of_day).present?
 
-		# check if user has availability in the same time
-		# return ErrorUtilities::generate_custom_error("start_at", "User already has availability in the same time") if user.availabilities.where("start_at <= ? AND end_at >= ?", start_at, start_at).any?
+			# check if user has availability in the same time
+			# return ErrorUtilities::generate_custom_error("start_at", "User already has availability in the same time") if user.availabilities.where("start_at <= ? AND end_at >= ?", start_at, start_at).any?
+		end
+
 
 		# get day of the week of end_at
 		day_of_week_for_availability = start_at.strftime("%A").downcase
 
 		# filter the service days by day_of_week_for_availability
 		service_shifts_for_selected_day = service.shifts.where(day: day_of_week_for_availability)
+
+
+		puts "*-"*100
+		puts "service_shifts_for_selected_day: #{day_of_week_for_availability}"
+		puts "service_shifts_for_selected_day: #{service_shifts_for_selected_day.count}"
+		puts "service_shifts_for_selected_day: #{(service_shifts_for_selected_day.count).zero?}"
+		puts "*-"*100
+
+		service.shifts.each do |shift|
+			puts "*-"*100
+			puts "shift: #{shift.day}"
+		end
+
 
 		# verify if the service has a shift on the day of the week for availability
 		return ErrorUtilities::generate_custom_error("service_id", "for service with id #{service.id} not exist a shift for date #{start_at.to_date}") if (service_shifts_for_selected_day.count).zero?
@@ -60,6 +75,10 @@ class Availability < ApplicationRecord
 
 		# evaluate if user's availability end time is less than or equal than shift end time
 		return ErrorUtilities::generate_custom_error("end_at", "user end_at #{user_end_time} is not less or equal than shift end time #{shift_end_time}") unless user_end_time <= shift_end_time
+
+		# if all validations are ok, destroy previous availability and create a new one
+		prev_availability = Availability.find(id) unless id.nil?
+		prev_availability.destroy if prev_availability.present?
 
 		availability = Availability.new(availability)
 	end

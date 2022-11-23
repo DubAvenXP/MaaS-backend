@@ -1,37 +1,24 @@
 class AvailabilitiesController < ApplicationController
-	before_action :set_availability, only: %i[ show update destroy ]
+	before_action :set_availability, only: %i[ show destroy ]
 
 	# GET /availabilities
 	def index
-		renspond_with_success(Availability.all)
+		respond_with_success(Availability.all)
 	end
 
 	# GET /availabilities/1
 	def show
-		renspond_with_success(@availability)
+		respond_with_success(@availability)
 	end
 
 	# POST /availabilities
 	def create
-		@availability = Availability.create(availability_params)
-
-		# custom validations
-		return respond_with_custom_errors(@availability) if @availability[:errors].present? 
-
-		if @availability.save
-			respond_with_success(@availability, :created)
-		else
-			respond_with_errors(@availability)
-		end
+		upsert(nil, :created)
 	end
 
 	# PATCH/PUT /availabilities/1
 	def update
-		if @availability.update(availability_params)
-			respond_with_success(@availability)
-		else
-			respond_with_errors(@availability)
-		end
+		upsert(params.dig(:id), :ok)
 	end
 
 	# DELETE /availabilities/1
@@ -40,6 +27,20 @@ class AvailabilitiesController < ApplicationController
 	end
 
 	private
+
+	def upsert(id, status)
+		@availability = Availability.upsert(availability_params, id)
+
+		# custom validations
+		return respond_with_custom_errors(@availability) if @availability[:errors].present? 
+
+		if @availability.save
+			respond_with_success(@availability, status)
+		else
+			respond_with_errors(@availability)
+		end
+	end
+
 	# Use callbacks to share common setup or constraints between actions.
 	def set_availability
 		@availability = Availability.find(params[:id])

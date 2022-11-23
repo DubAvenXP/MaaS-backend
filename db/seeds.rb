@@ -105,7 +105,7 @@ services.each do |service|
         puts "Creating shift for service '#{service.name}' on day '#{day[0]}' from #{start_time} to #{end_time}"
 
         service.shifts.create({
-            day: Shift.days[day[0]],
+            day: day[0],
             start_time: start_time,
             end_time: end_time,
         }).save
