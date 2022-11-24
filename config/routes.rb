@@ -5,15 +5,15 @@ Rails.application.routes.draw do
 	resources :shifts
 
 	resources :services do
-		collection do
-			post "assign"
+		member do
 			get  "assignments"
+			get  "availabilities"
 		end
 	end
 	
 
 	resources :clients
-	resources :availabilities
+	resources :availabilities, only: %i[create update destroy]
 	resources :profiles, only: %i[update]
 	resources :users
 

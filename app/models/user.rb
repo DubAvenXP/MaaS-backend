@@ -26,6 +26,7 @@ class User < ApplicationRecord
                 image: user.profile.image_url,
                 role: user.profile.role,
                 profile_id: user.profile.id
+				
             }
         end
     end

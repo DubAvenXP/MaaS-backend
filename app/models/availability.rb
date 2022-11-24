@@ -1,13 +1,15 @@
 class Availability < ApplicationRecord
 	include ErrorUtilities
 
+	after_create :execute_assignments
+
 	belongs_to :user
 	belongs_to :service
 
-	validates :start_at, presence: true, comparison: { less_than: :end_at, greater_or_equal_than: Date.current }
+	validates :start_at, presence: true, comparison: { less_than: :end_at }
 	validates :end_at, presence: true
 
-
+	# This is method is used to create and update an availability
 	def self.upsert(availability, id)
 
 		# get the service and user
@@ -22,6 +24,16 @@ class Availability < ApplicationRecord
 		start_at = DateTime.parse(availability[:start_at])
 		end_at = DateTime.parse(availability[:end_at])
 
+		# verify if start_at and end_at are in the same day
+		return ErrorUtilities::generate_custom_error("start_at", "start_at #{start_at.to_date} is not the same day as end_at #{end_at.to_date}") unless start_at.day == end_at.day
+
+		# check if the availability is in the past
+		return ErrorUtilities::generate_custom_error("date", "User cannot create or chage an availability if it is in the past") if start_at < DateTime.now
+
+		# check if the availability is for today
+		return ErrorUtilities::generate_custom_error("start_at", "User can't create or change an availability for today") if start_at.to_date == Date.current
+
+		# id nil means that this excution is for create
 		if id.nil?
 			# check if the user has availability in the same day
 			return ErrorUtilities::generate_custom_error("start_at", "User can't be available 2 or more times at the same day") if user.availabilities.where(start_at: start_at.beginning_of_day..start_at.end_of_day).present?
@@ -39,9 +51,6 @@ class Availability < ApplicationRecord
 
 		# verify if the service has a shift on the day of the week for availability
 		return ErrorUtilities::generate_custom_error("service_id", "for service with id #{service.id} not exist a shift for date #{start_at.to_date}") if (service_shifts_for_selected_day.count).zero?
-
-		# verify if start_at and end_at are in the same day
-		return ErrorUtilities::generate_custom_error("start_at", "start_at #{start_at.to_date} is not the same day as end_at #{end_at.to_date}") unless start_at.day == end_at.day
 
 		# start_at is greater or equal than service.start_at
 		return ErrorUtilities::generate_custom_error("start_at", "start_at is not greater or equal than start date of service #{service.start_at.to_date}") unless start_at >= service.start_at
@@ -69,4 +78,12 @@ class Availability < ApplicationRecord
 
 		availability = Availability.new(availability)
 	end
+
+
+	private
+
+	def execute_assignments
+		Assignment.assign(self)
+	end
+
 end

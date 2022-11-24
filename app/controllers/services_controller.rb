@@ -1,5 +1,5 @@
 class ServicesController < ApplicationController
-	before_action :set_service, only: %i[ show update destroy ]
+	before_action :set_service, only: %i[ show update destroy availabilities assignments ]
 
 	# GET /services
 	def index
@@ -34,6 +34,16 @@ class ServicesController < ApplicationController
 	# DELETE /services/1
 	def destroy
 		@service.destroy
+	end
+
+	# GET /services/1/availabilities
+	def availabilities
+		respond_with_success(@service.get_availabilities_by_service(params))
+	end
+
+	# GET /services/1/assignments
+	def assignments
+		respond_with_success(@service.assignments_by_service(params))
 	end
 
 	private
