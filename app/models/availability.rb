@@ -137,6 +137,7 @@ class Availability < ApplicationRecord
 			{
 				day: day,
 				target_shift_hours: current_shift[:total_hours],
+				total_users: availabilities.count,
 				availabilities: availabilities
 			}
 
@@ -149,10 +150,17 @@ class Availability < ApplicationRecord
 		availabilities_by_week = availabilities.group_by { |availability| availability.start_at.beginning_of_week..availability.start_at.end_of_week }
 
 		# total hours by shift
-		total_shift_hours_for_week = shifts.reduce(0) { |sum, shift|
+		total_shift_hours_by_week = shifts.reduce(0) { |sum, shift|
 			hours_per_day = shift.end_time.split(":")[0].to_i - shift.start_time.split(":")[0].to_i
 			sum + hours_per_day
 		}
+		
+		availabilities_by_days = get_availabilities_by_day(availabilities, shifts)
+
+		average_users_by_day = (availabilities_by_days.reduce(0) { |sum, day|
+			sum + day[:total_users]
+		}) / availabilities_by_days.count
+
 		
 
 		# count availabilities by week
@@ -160,9 +168,11 @@ class Availability < ApplicationRecord
 			{
 				week: week,
 				total_availabilites: availabilities.count,
-				total_shift_hours_for_week: total_shift_hours_for_week,
-				availabilities_by_days: get_availabilities_by_day(availabilities, shifts),
-				availabilities_by_user: get_availabilities_by_users(availabilities)
+				total_shift_hours_by_week: total_shift_hours_by_week,
+				total_days: availabilities_by_days.count,
+				average_users_by_day: average_users_by_day,
+				average_user_hours_by_week: total_shift_hours_by_week / average_users_by_day,
+				availabilities_by_days: availabilities_by_days,
 			}
 		end
 	end
