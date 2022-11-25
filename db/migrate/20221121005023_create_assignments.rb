@@ -6,6 +6,7 @@ class CreateAssignments < ActiveRecord::Migration[7.0]
       t.datetime :deleted_at
       t.references :user, null: false, foreign_key: true
       t.references :shift, null: false, foreign_key: true
+      t.references :availability, null: true, foreign_key: true
 
       t.timestamps
     end

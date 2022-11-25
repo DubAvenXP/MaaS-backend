@@ -5,6 +5,7 @@ class Availability < ApplicationRecord
 
 	belongs_to :user
 	belongs_to :service
+	has_one :assignment
 
 	validates :start_at, presence: true, comparison: { less_than: :end_at }
 	validates :end_at, presence: true
@@ -127,7 +128,7 @@ class Availability < ApplicationRecord
 					availability_start_at: availability.start_at.strftime("%H:%M"),
 					availability_end_at: availability.end_at.strftime("%H:%M"),
 					shift_start_at: current_shift[:start_time],
-					shifts_end_at: current_shift[:end_time]
+					shift_end_at: current_shift[:end_time]
 				}
 			end
 
