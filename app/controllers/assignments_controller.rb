@@ -13,13 +13,9 @@ class AssignmentsController < ApplicationController
 
 	# POST /assignments
 	def create
-		@assignment = Assignment.new(assignment_params)
+		@assignment = Assignment.assign(params)
 
-		if @assignment.save
-			respond_with_success(@assignment, :created)
-		else
-			respond_with_errors(@assignment)
-		end
+		respond_with_success(@assignment)
 	end
 
 	# PATCH/PUT /assignments/1

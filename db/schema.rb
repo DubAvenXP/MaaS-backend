@@ -58,7 +58,8 @@ ActiveRecord::Schema[7.0].define(version: 2022_11_22_234123) do
     t.datetime "start_at"
     t.datetime "end_at"
     t.datetime "deleted_at"
-    t.boolean "has_active_assignment", default: true
+    t.boolean "assigned", default: false
+    t.boolean "active", default: true
     t.bigint "user_id", null: false
     t.bigint "service_id", null: false
     t.datetime "created_at", null: false

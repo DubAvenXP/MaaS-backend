@@ -53,7 +53,7 @@ class Service < ApplicationRecord
 
 		# get the availabilities of the service
 		availabilities = self.availabilities.joins(:user).joins(user: :profile).select("
-			availabilities.id, availabilities.start_at, availabilities.end_at,
+			availabilities.id, availabilities.start_at, availabilities.end_at, availabilities.assigned, availabilities.active,
 			users.id as user_id, 
 			concat(profiles.first_name, ' ', profiles.last_name) as user_name
 		")

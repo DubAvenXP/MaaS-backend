@@ -32,11 +32,11 @@ class AvailabilitiesController < ApplicationController
 		# custom validations
 		return respond_with_custom_errors(@availability) if @availability[:errors].present? 
 
-		# if @availability.save
+		if @availability.save
 			respond_with_success(@availability, status)
-		# else
-		# 	respond_with_errors(@availability)
-		# end
+		else
+			respond_with_errors(@availability)
+		end
 	end
 
 	# Use callbacks to share common setup or constraints between actions.

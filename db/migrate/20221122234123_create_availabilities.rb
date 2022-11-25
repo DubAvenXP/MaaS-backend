@@ -4,7 +4,8 @@ class CreateAvailabilities < ActiveRecord::Migration[7.0]
 		t.datetime :start_at
 		t.datetime :end_at
 		t.datetime :deleted_at
-		t.boolean  :has_active_assignment, default: false
+		t.boolean  :assigned, default: false
+		t.boolean  :active, default: true
 		t.references :user, null: false, foreign_key: true
 		t.references :service, null: false, foreign_key: true
 

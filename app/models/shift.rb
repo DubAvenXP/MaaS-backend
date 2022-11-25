@@ -32,7 +32,7 @@ class Shift < ApplicationRecord
 		return errors.add("Invalid service id provided") unless Service.find(self.service_id).present?
 
 		# get the shift for the service and day provided
-		invalid_day = Shift.where(id: self.service_id, day: self.day).count == 1
-		errors.add(:day, "Service with id #{self.service_id} has already a shift on #{self.day}") if invalid_day
+		# invalid_day = Shift.where(id: self.service_id, day: self.day).count == 1
+		# errors.add(:day, "Service with id #{self.service_id} has already a shift on #{self.day}") if invalid_day
 	end
 end
