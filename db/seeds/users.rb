@@ -23,7 +23,7 @@ puts "User #{User.first.email} created"
 
 # Random users
 
-5.times do
+13.times do
     password = "helloworld123"
     user = User.create(
         email: Faker::Internet.email,

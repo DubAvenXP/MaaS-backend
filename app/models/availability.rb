@@ -101,6 +101,7 @@ class Availability < ApplicationRecord
 
 		total_hours_by_shift = shifts.map do |shift|
 			{
+				id: shift.id,
 				day: shift.day,
 				total_hours: (shift.end_time.to_time - shift.start_time.to_time) / 1.hour,
 				end_time: shift.end_time,
@@ -121,6 +122,7 @@ class Availability < ApplicationRecord
 				{
 					id: availability.id,
 					user_id: availability.user_id,
+					user_full_name: availability.user.profile.first_name + " " + availability.user.profile.last_name,
 					total_available_hours: total_hours,
 					missing_hours: current_shift[:total_hours] - total_hours,
 					day: current_shift[:day],
@@ -128,7 +130,8 @@ class Availability < ApplicationRecord
 					availability_start_at: availability.start_at.strftime("%H:%M"),
 					availability_end_at: availability.end_at.strftime("%H:%M"),
 					shift_start_at: current_shift[:start_time],
-					shift_end_at: current_shift[:end_time]
+					shift_end_at: current_shift[:end_time],
+					shift_id: current_shift[:id]
 				}
 			end
 

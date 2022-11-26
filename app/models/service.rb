@@ -3,6 +3,7 @@ class Service < ApplicationRecord
 	
 	has_many :shifts, dependent: :destroy
 	has_many :availabilities, dependent: :destroy
+	has_many :assignments, dependent: :destroy
 	
 	# custom validations
 	validate :is_valid_client_id
@@ -96,7 +97,9 @@ class Service < ApplicationRecord
 		return params
 	end
 
-
+	def potential_assignments_by_service(params)
+		
+	end
 
 	private
 
@@ -110,6 +113,5 @@ class Service < ApplicationRecord
 		errors.add(:start_at, "Must be formatted correctly") unless self.start_at.class == ActiveSupport::TimeWithZone
 		errors.add(:end_at, "Must be formatted correctly") unless self.end_at.class == ActiveSupport::TimeWithZone
 	end
-
 	
 end

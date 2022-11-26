@@ -2,6 +2,7 @@ class Assignment < ApplicationRecord
 	belongs_to :user
 	belongs_to :shift
 	belongs_to :availability, optional: true
+	belongs_to :service
 
 	def self.assign(params)
 
@@ -11,22 +12,26 @@ class Assignment < ApplicationRecord
 		# not assign availabilities if they are less than today
 		availabilities = service.availabilities.joins(user: :profile).joins(:user).where("availabilities.start_at >= ?", Date.today.beginning_of_day)
 
-		# group availabilities by week
-		availabilities_by_week = Availability.get_availabilities_by_week(availabilities, shifts)
+		potential_assignments = potential_assignments_by_service(shifts, availabilities)
 
-		potential_assignments = []
-		
-		# iterate over each week
-		availabilities_by_week.each do |week|
-			potential_assignments <<  get_best_assignments_by_week(week)
+		#TODO: delete previous assignments greater than Date.today.beginning_of_day
+
+		potential_assignments[:assignments_by_week].each do |week|
+			week[:assignments_for_week].each do |day|
+				day[:availabilities].each do |availability|
+					Assignment.create(
+						user_id: availability[:user_id],
+						shift_id: availability[:shift_id],
+						availability_id: availability[:id],
+						start_at: availability[:assignment_start_at],
+						end_at: availability[:assignment_end_at],
+						service: service
+					)
+				end
+			end
 		end
 
-		# 2
-
 		# TODO: after create an assignment update the availabilities for that day in
-
-
-		# 3
 
 		# TODO: calculate pending hours by shift
 		# TODO: calculate assigned_shift by user
@@ -37,18 +42,10 @@ class Assignment < ApplicationRecord
 
 		
 
-		{ total_weeks: availabilities_by_week.count, potential_assignments: potential_assignments }
+		potential_assignments
 	end
 
-	def self.potential_assignments(service_id, week)
-
-		
-
-		service = Service.find(params[:service_id])
-		shifts = service.shifts
-
-		# not assign availabilities if they are less than today
-		availabilities = service.availabilities.joins(user: :profile).joins(:user).where("availabilities.start_at >= ?", Date.today.beginning_of_day)
+	def self.potential_assignments_by_service(shifts, availabilities)
 
 		# group availabilities by week
 		availabilities_by_week = Availability.get_availabilities_by_week(availabilities, shifts)
@@ -60,7 +57,7 @@ class Assignment < ApplicationRecord
 			potential_assignments <<  get_best_assignments_by_week(week)
 		end
 
-		{ total_weeks: availabilities_by_week.count, potential_assignments: potential_assignments }
+		{ total_weeks: availabilities_by_week.count, assignments_by_week: potential_assignments }
 	end
 
 	private
@@ -128,17 +125,23 @@ class Assignment < ApplicationRecord
 			assigned_users = calculate_assigned_user_stats(best_assignment, assigned_users)
 		end
 		formatted_users = []
+		total_assigned_hours = 0
 		assigned_users.each do |user_id, user_stats|
 			formatted_users << {
 				user_id: user_id,
 				assigned_hours: user_stats[:assigned_hours],
+				user_full_name: user_stats[:user_full_name]
 			}
+			total_assigned_hours += user_stats[:assigned_hours]
 		end
 
 		real_average_user_hours_by_week = formatted_users.reduce(0) { |sum, user| sum + user[:assigned_hours] } / formatted_users.count
 		
 		{
 			week: week[:week],
+			total_shift_hours_by_week: week[:total_shift_hours_by_week],
+			total_assigned_hours: total_assigned_hours,
+			missing_hours: week[:total_shift_hours_by_week] - total_assigned_hours,
 			potential_average_user_hours_by_week: potential_average_user_hours_by_week,
 			real_average_user_hours_by_week: real_average_user_hours_by_week,
 			assert_percentage: (real_average_user_hours_by_week / potential_average_user_hours_by_week) * 100,
