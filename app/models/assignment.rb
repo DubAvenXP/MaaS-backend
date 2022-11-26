@@ -3,6 +3,132 @@ class Assignment < ApplicationRecord
 	belongs_to :shift
 	belongs_to :availability, optional: true
 
+	# def self.get_potential_assignments_by_week(day, assigned_users, average_user_hours_by_week)
+
+	# 	service = Service.find(params[:service_id])
+	# 	shifts = service.shifts
+
+	# 	# not assign availabilities if they are less than today
+	# 	availabilities = service.availabilities.where("availabilities.start_at >= ?", Date.today)
+
+	# 	# group availabilities by week
+	# 	availabilities_by_week = Availability.get_availabilities_by_week(availabilities, shifts)
+
+	# 	availabilities_to_assign = []
+	# 	assigned_users = {}
+
+	# 	# iterate over each week
+	# 	availabilities_by_week.each do |week|
+	# 		# # when user completes their average hours, they are not assigned anymore
+	# 		# completed_average_users = {
+	# 		# 	# user_id: { assigned_hours: x, missing_hours: y, availabilty_hours: z }
+	# 		# }
+
+
+	# 		assignments_for_week = []
+
+	# 		# assign monday then recalculate the best assignments for tuesday
+	# 		# assign tuesday then recalculate the best assignments for wednesday
+	# 		# ...
+
+	# 		# total_shift_hours_by_week = week[:total_shift_hours_by_week]
+	# 		average_user_hours_by_week = week[:average_user_hours_by_week]
+
+	# 		# iterate over each day
+	# 		week[:availabilities_by_days].each do |day|
+	# 			best_assignments_day = get_potential_assignments_by_day(day, assigned_users, average_user_hours_by_week)
+	# 			best_assignment = nil
+
+	# 			# 1. add the best assignments if for the first day
+	# 			if assignments_for_week.empty?
+					
+	# 				assignment = best_assignments_day[:potential_assignments].first
+	# 				assignments_for_week << assignment
+	# 				assigned_users = calculate_assigned_user_stats(assignment, assigned_users)
+	# 				best_assignment = assignment
+	# 				puts "First assignment found"
+	# 				next
+	# 			end
+				
+				
+	# 			# 2. iterate over best_assignments and pick the best one
+	# 			# the best one has and array of recommended provided by each user
+	# 			counter = 0
+	# 			bad_assignments = [] # { index: x, total_recommendations: y }
+
+	# 			while counter < best_assignments_day[:potential_assignments].count
+
+	# 				potential_assignment = best_assignments_day[:potential_assignments][counter]
+
+	# 				# if all the values in array of recommended are true, then it is the best assignment
+	# 				if potential_assignment[:array_of_recommendations].all?
+	# 					assignments_for_week << potential_assignment
+	# 					assigned_users = calculate_assigned_user_stats(potential_assignment, assigned_users)
+	# 					best_assignment = potential_assignment
+	# 					counter = best_assignments_day[:potential_assignments].count
+	# 				else
+	# 					bad_assignments << {
+	# 						index: counter,
+	# 						# total_recommendations will be used to sort bad_assignments 
+	# 						total_recommendations: potential_assignment[:array_of_recommendations].count(true)
+	# 					}
+	# 				end
+	# 				counter += 1
+	# 			end
+
+	# 			next unless best_assignment.nil?
+
+	# 			# verify if there is a best assignment
+				
+	# 			# if there is no best assignment, then pick the one with the most recommendations
+	# 			bad_assignments = bad_assignments.sort_by { |bad_assignment| bad_assignment[:total_recommendations] }
+				
+	# 			best_assignment = best_assignments_day[:potential_assignments][bad_assignments.last[:index]]
+	# 			assignments_for_week << best_assignment
+	# 			assigned_users = calculate_assigned_user_stats(best_assignment, assigned_users)
+	# 		end
+
+	# 		availabilities_to_assign << assignments_for_week
+	# 	end
+
+
+
+
+	# 	# count availabilties for this shift
+
+
+	# 	# count availabilties by user in that shift
+
+
+
+	# 	# get every availability
+	# 	# filter by day availabilities
+
+
+	# 	# TODO: try to assign to every user same hours
+	# 	# TODO: avoid shift changes by day
+
+	# 	# 2
+
+	# 	# TODO: after create an assignment update the availabilities for that day in
+
+
+	# 	# 3
+
+	# 	# TODO: calculate pending hours by shift
+	# 	# TODO: calculate assigned_shift by user
+	# 	# TODO: recommend what user should be assigned to pending hours by shift
+
+	# 	# TODO: if user has been assigned to a shift, update the availability for the other services at the same time
+	# 	# TODO: if the availability runs out of hours, turn it off
+
+
+	# 	{
+	# 		# availabilities_by_week: availabilities_by_week
+	# 		availabilities_to_assign: availabilities_to_assign,
+	# 		assigned_users: assigned_users
+	# 	}
+	# end
 
 	def self.assign(params)
 
@@ -16,42 +142,69 @@ class Assignment < ApplicationRecord
 		availabilities_by_week = Availability.get_availabilities_by_week(availabilities, shifts)
 
 		availabilities_to_assign = []
-		assigned_users = {}
-
+		
 		# iterate over each week
 		availabilities_by_week.each do |week|
-			# # when user completes their average hours, they are not assigned anymore
-			# completed_average_users = {
-			# 	# user_id: { assigned_hours: x, missing_hours: y, availabilty_hours: z }
-			# }
+			assigned_users = {}
 
-
+			# best assignments for the week
 			assignments_for_week = []
-
-			# assign monday then recalculate the best assignments for tuesday
-			# assign tuesday then recalculate the best assignments for wednesday
-			# ...
 
 			# total_shift_hours_by_week = week[:total_shift_hours_by_week]
 			average_user_hours_by_week = week[:average_user_hours_by_week]
 
 			# iterate over each day
 			week[:availabilities_by_days].each do |day|
-				best_assignments_day = calculate_best_assignments(day, assigned_users, average_user_hours_by_week)
+				best_assignments_day = get_potential_assignments_by_day(day, assigned_users, average_user_hours_by_week)
+				best_assignment = nil
 
-				# add the best assignments for the day to the assignments for the week
+				# 1. add the best assignments if for the first day
 				if assignments_for_week.empty?
-					assignments = best_assignments_day[:potential_assignments][0]
-					assignments_for_week << assignments
-					assigned_users = calculate_assigned_user_stats(assignments, assigned_users)
+					
+					assignment = best_assignments_day[:potential_assignments].first
+					assignments_for_week << assignment
+					assigned_users = calculate_assigned_user_stats(assignment, assigned_users)
+					best_assignment = assignment
+					puts "First assignment found"
+					next
+				end
+				
+				
+				# 2. iterate over best_assignments and pick the best one
+				# the best one has and array of recommended provided by each user
+				counter = 0
+				bad_assignments = [] # { index: x, total_recommendations: y }
+
+				while counter < best_assignments_day[:potential_assignments].count
+
+					potential_assignment = best_assignments_day[:potential_assignments][counter]
+
+					# if all the values in array of recommended are true, then it is the best assignment
+					if potential_assignment[:array_of_recommendations].all?
+						assignments_for_week << potential_assignment
+						assigned_users = calculate_assigned_user_stats(potential_assignment, assigned_users)
+						best_assignment = potential_assignment
+						counter = best_assignments_day[:potential_assignments].count
+					else
+						bad_assignments << {
+							index: counter,
+							# total_recommendations will be used to sort bad_assignments 
+							total_recommendations: potential_assignment[:array_of_recommendations].count(true)
+						}
+					end
+					counter += 1
 				end
 
-				assignments_for_week << best_assignments_day
+				next unless best_assignment.nil?
 
-
-				# mark as inactive the rest of availabilities
-				# mark as active the rest of availabilities
-				# fill the array with assigned users
+				# verify if there is a best assignment
+				
+				# if there is no best assignment, then pick the one with the most recommendations
+				bad_assignments = bad_assignments.sort_by { |bad_assignment| bad_assignment[:total_recommendations] }
+				
+				best_assignment = best_assignments_day[:potential_assignments][bad_assignments.last[:index]]
+				assignments_for_week << best_assignment
+				assigned_users = calculate_assigned_user_stats(best_assignment, assigned_users)
 			end
 
 			availabilities_to_assign << assignments_for_week
@@ -99,21 +252,18 @@ class Assignment < ApplicationRecord
 
 	private
 
+	def self.get_best_assignment_by_day
+		
+	end
 
 	# TODO: return this function to get best assignments_by_service (frontend)
-	# this method is used to calculate the best assignments for a day
-	# are sorted by shift changes
+	# this method is used to generate the best assignments for a day and recommend the best assignments
+	# The potential assignments are sorted by shift changes
 	# {
 	# 	day: day_availabilities[:day],
 	# 	best_assignments: [{} ... {}]
 	# }
-
-	# { 
-	# 	user_id: {
-	# 		assigned_hours: x, 
-	# 	}
-	# }
-	def self.calculate_best_assignments(day_availabilities, assigned_users = {}, average_hours = 0)
+	def self.get_potential_assignments_by_day(day_availabilities, assigned_users = {}, average_hours = 0)
 
 		best_assignments = []
 		
@@ -129,14 +279,15 @@ class Assignment < ApplicationRecord
 				availability[:assignment_start_at] = availability[:availability_start_at]
 				availability[:assignment_end_at] = availability[:availability_end_at]
 				availability[:total_assigned_hours] = get_total_hours(availability[:assignment_start_at], availability[:assignment_end_at])
-
+				
 				best_assignments << {
+					day: day_availabilities[:day],
 					has_shift_changes: false,
 					total_shift_changes: 0,
 					is_complete: true,
 					availabilities: [availability],
-					array_of_recommended: [recommended],
-					array_of_missing_hours: []
+					array_of_missing_hours: [],
+					array_of_recommendations: [recommended]
 				}
 				next
 			end
@@ -179,15 +330,16 @@ class Assignment < ApplicationRecord
 				# if it does, add the availability to the availabilities arrrat on last best assignment
 
 				# add assignment to availability
-				availability[:assignment_start_at] = format_time(assignment_start_at)
-				availability[:assignment_end_at] = format_time(assignment_end_at)
+				availability[:assignment_start_at] = format_time(assignment_start_at - 1)
+				availability[:assignment_end_at] = format_time(assignment_end_at - 1)
 				availability[:total_assigned_hours] = get_total_hours(availability[:assignment_start_at], availability[:assignment_end_at])
 
+				best_assignments.last[:day] = day_availabilities[:day]
 				best_assignments.last[:is_complete] = missing_hours.count == 0
 				best_assignments.last[:array_of_missing_hours] = missing_hours
 				best_assignments.last[:availabilities] << availability
 				best_assignments.last[:total_shift_changes] << best_assignments.last[:availabilities].count - 1
-				best_assignments.last[:array_of_recommended] << recommended
+				best_assignments.last[:array_of_recommendations] << recommended
 				next
 			end
 
@@ -201,12 +353,13 @@ class Assignment < ApplicationRecord
 				availability[:total_assigned_hours] = get_total_hours(availability[:assignment_start_at], availability[:assignment_end_at])
 
 				best_assignments << {
+					day: day_availabilities[:day],
 					has_shift_changes: true,
 					total_shift_changes: 1,
 					is_complete: false,
 					availabilities: [availability],
 					array_of_missing_hours: get_array_of_missing_hours(availability),
-					array_of_recommended: [recommended]
+					array_of_recommendations: [recommended]
 				}
 			end
 		end
@@ -217,6 +370,7 @@ class Assignment < ApplicationRecord
 		}
 	end
 
+	# get array of missing hours from availability
 	def self.get_array_of_missing_hours(availability)
 		array_of_hours_shift = get_array_of_hours(availability[:shift_start_at], availability[:shift_end_at])
 		array_of_hours_availabilitiy = get_array_of_hours(availability[:availability_start_at], availability[:availability_end_at])
@@ -225,6 +379,9 @@ class Assignment < ApplicationRecord
 		missing_hours = (array_of_hours_shift + array_of_hours_availabilitiy).difference(array_of_hours_availabilitiy)
 	end
 
+	# get array of hours from start_at to end_at
+	# example: start_at = 10, end_at = 12
+	# return [10, 11, 12]
 	def self.get_array_of_hours(start_at, end_at)
 		formatted_start_at = start_at.split(":")[0].to_i
 		formatted_end_at = end_at.split(":")[0].to_i
@@ -232,12 +389,15 @@ class Assignment < ApplicationRecord
 		array_of_hours = (formatted_start_at..formatted_end_at).to_a
 	end
 
+	# format time to 24 hours
+	# 10 -> 10:00
 	def self.format_time(time)
 		# format time to "HH:MM"
 		return time = "0#{time}:00" if time < 10
 		time = "#{time}:00" unless time < 10
 	end
 
+	# get total hours between two times
 	def self.get_total_hours(start_time, end_time)
 		# get total hours of shift
 		start_time = start_time.split(":")[0].to_i
@@ -246,16 +406,23 @@ class Assignment < ApplicationRecord
 		end_time - start_time
 	end
 
-	def self.calculate_assigned_user_stats(assignments, assigned_users)
-		assignments[:availabilities].each do |availability|
-			if assigned_users.blank?
+	# { user_id: { assigned_hours: x }  }
+	# returns a hash with the user_id and the total assigned hours
+	def self.calculate_assigned_user_stats(potential_assignment, assigned_users)
+		potential_assignment[:availabilities].each do |availability|
+
+			# unless the user is already in the hash, add it
+			unless assigned_users[availability[:user_id]].present?
 				assigned_users[availability[:user_id]] = {
 					assigned_hours: availability[:total_assigned_hours]
-				} 
-			elsif assigned_users[availability[:user_id]].present?
-				assigned_users[availability[:user_id]][:assigned_hours] += availability[:total_assigned_hours]
+				}
+				next
 			end
+
+			# if the user is already in the hash, add the assigned hours to the previous total
+			assigned_users[availability[:user_id]][:assigned_hours] += availability[:total_assigned_hours]
 		end
+
 		assigned_users
 	end
 
