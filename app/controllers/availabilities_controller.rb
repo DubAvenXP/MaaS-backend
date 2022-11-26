@@ -11,31 +11,35 @@ class AvailabilitiesController < ApplicationController
 
 	# POST /availabilities
 	def create
-		upsert(nil, :created)
+		availability_responder(nil, :created, nil)
 	end
 
 	# PATCH/PUT /availabilities/1
 	def update
-		upsert(params.dig(:id), :ok)
+		availability_responder(params.dig(:id), :ok, nil)
 	end
 
 	# DELETE /availabilities/1
 	def destroy
-		@availability.destroy
+		availability_responder(params.dig(:id), :ok, "delete")
 	end
 
 	private
 
-	def upsert(id, status)
-		@availability = Availability.upsert(availability_params, id)
+	def availability_responder(id, status, action)
+		availability = Availability.availability_manager(availability_params, id, action)
+
+		if action == "delete"
+			return respond_with_success(Assignment.assign(@availability.service.id), status)
+		end
 
 		# custom validations
-		return respond_with_custom_errors(@availability) if @availability[:errors].present? 
+		return respond_with_custom_errors(availability) if availability[:errors].present? 
 
-		if @availability.save
-			respond_with_success(@availability, status)
+		if availability.save
+			respond_with_success(Assignment.assign(availability.service_id), status)
 		else
-			respond_with_errors(@availability)
+			respond_with_errors(availability)
 		end
 	end
 

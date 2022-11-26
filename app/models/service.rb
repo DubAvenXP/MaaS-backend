@@ -33,7 +33,7 @@ class Service < ApplicationRecord
 			description: self.description,
 			start_at: self.start_at.to_date,
 			end_at: self.end_at.to_date,
-			shifts: shifts
+			shifts: shifts,
 		}
 	end
 
@@ -56,7 +56,7 @@ class Service < ApplicationRecord
 		availabilities = self.availabilities.joins(:user).joins(user: :profile).select("
 			availabilities.id, availabilities.start_at, availabilities.end_at, availabilities.assigned, availabilities.active,
 			users.id as user_id, 
-			concat(profiles.first_name, ' ', profiles.last_name) as user_name
+			concat(profiles.first_name, ' ', profiles.last_name) as user_name, profiles.color
 		")
 
 		# filter availabilities by week
@@ -85,6 +85,7 @@ class Service < ApplicationRecord
 			name: self.name,
 			start_at: self.start_at.to_date,
 			end_at: self.end_at.to_date,
+			current_week: week.to_date,
 			next_week: next_week.to_date,
 			prev_week: prev_week.to_date,
 			shifts: shifts
@@ -94,7 +95,36 @@ class Service < ApplicationRecord
 	end
 
 	def assignments_by_service(params)
-		return params
+		# check if week is present and parse to DateTime
+		week = DateTime.parse(params[:week]) if params[:week].present?
+
+		# if week is not available then use the current week
+		week = Time.current.beginning_of_week if week.nil?
+		next_week = week + 1.week
+		prev_week = week - 1.week
+
+		# get the availabilities of the service
+		assignments = self.assignments.joins(:user).joins(user: :profile).select("
+			assignments.id, assignments.start_at, assignments.end_at,
+			users.id as user_id, 
+			concat(profiles.first_name, ' ', profiles.last_name) as user_name, profiles.color
+		")
+
+		# filter assignments by week
+		assignments_week = Assignment.show(self, week)
+
+		service = {
+			id: self.id,
+			name: self.name,
+			start_at: self.start_at.to_date,
+			end_at: self.end_at.to_date,
+			current_week: week.to_date,
+			next_week: next_week.to_date,
+			prev_week: prev_week.to_date,
+			assignments: assignments_week[:assignments_by_week],
+		}
+
+		service
 	end
 
 	def potential_assignments_by_service(params)

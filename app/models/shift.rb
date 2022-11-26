@@ -24,15 +24,14 @@ class Shift < ApplicationRecord
 
 	validate :is_valid_day_and_service
 
-
 	private
 	# validates if the day does not have a shift for a specific service
 	def is_valid_day_and_service
 		# validate if service_id exists
-		return errors.add("Invalid service id provided") unless Service.find(self.service_id).present?
+		return errors.add(:service_id, "Invalid service id provided") unless Service.find(self.service_id).present?
 
 		# get the shift for the service and day provided
-		# invalid_day = Shift.where(id: self.service_id, day: self.day).count == 1
-		# errors.add(:day, "Service with id #{self.service_id} has already a shift on #{self.day}") if invalid_day
+		invalid_day = Shift.where(service_id: self.service_id, day: self.day)
+		errors.add(:day, "Service with id #{self.service_id} has already a shift on #{self.day}") if invalid_day.present?
 	end
 end

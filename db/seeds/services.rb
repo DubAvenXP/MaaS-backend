@@ -1,9 +1,7 @@
 
 # seed for services
 
-Service.all.each do |service|
-	service.destroy
-end
+Service.destroy_all
 
 clients = Client.all
 

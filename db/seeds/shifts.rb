@@ -1,3 +1,5 @@
+Shift.destroy_all
+
 # seed for shifts
 Service.all.each do |service|
     Shift.days.keys.each do |day|

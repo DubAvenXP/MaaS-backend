@@ -1,20 +1,21 @@
 class Assignment < ApplicationRecord
 	belongs_to :user
 	belongs_to :shift
-	belongs_to :availability, optional: true
+	belongs_to :availability
 	belongs_to :service
 
-	def self.assign(params)
-
-		service = Service.find(params[:service_id])
+	def self.assign(service_id)
+	
+		service = Service.find(service_id)
 		shifts = service.shifts
 
 		# not assign availabilities if they are less than today
-		availabilities = service.availabilities.joins(user: :profile).joins(:user).where("availabilities.start_at >= ?", Date.today.beginning_of_day)
+		availabilities = service.availabilities.joins(user: :profile).joins(:user)#.where("availabilities.start_at >= ?", Time.current.beginning_of_day)
 
-		potential_assignments = potential_assignments_by_service(shifts, availabilities)
+		potential_assignments = potential_assignments_by_service(shifts, availabilities, nil)
 
-		#TODO: delete previous assignments greater than Date.today.beginning_of_day
+		# delete assignments greater than Time.current.beginning_of_day
+		removed_assignments = Assignment.where(start_at: Time.current.beginning_of_week..Time.current.beginning_of_week+1.year, service: service).delete_all
 
 		potential_assignments[:assignments_by_week].each do |week|
 			week[:assignments_for_week].each do |day|
@@ -23,32 +24,41 @@ class Assignment < ApplicationRecord
 						user_id: availability[:user_id],
 						shift_id: availability[:shift_id],
 						availability_id: availability[:id],
-						start_at: availability[:assignment_start_at],
-						end_at: availability[:assignment_end_at],
+						start_at: "#{availability[:date]} #{availability[:potential_assignment_start_at]}",
+						end_at: "#{availability[:date]} #{availability[:potential_assignment_end_at]}",
 						service: service
-					)
+					).save
 				end
 			end
 		end
 
-		# TODO: after create an assignment update the availabilities for that day in
+		# count created assignments
+		created_assignments = Assignment.where("service_id = ?", service.id).count
 
-		# TODO: calculate pending hours by shift
-		# TODO: calculate assigned_shift by user
-		# TODO: recommend what user should be assigned to pending hours by shift
-
-		# TODO: if user has been assigned to a shift, update the availability for the other services at the same time
-		# TODO: if the availability runs out of hours, turn it off
-
-		
-
-		potential_assignments
+		{ 
+			created_assignments: created_assignments, 
+			removed_assignments: removed_assignments, 
+			total_availabilities_checked: service.availabilities.count,
+			total_weeks_affected: potential_assignments[:total_weeks], 
+			assignments_by_week: potential_assignments[:assignments_by_week]
+		}
 	end
 
-	def self.potential_assignments_by_service(shifts, availabilities)
+	def self.show(service, week)
+		shifts = service.shifts
+
+		# not assign availabilities if they are less than today
+		availabilities = service.availabilities.joins(user: :profile).joins(:user).where("availabilities.start_at >= ?", Time.current.beginning_of_day)
+
+		potential_assignments_by_service(shifts, availabilities, week)
+	end
+
+
+
+	def self.potential_assignments_by_service(shifts, availabilities, week)
 
 		# group availabilities by week
-		availabilities_by_week = Availability.get_availabilities_by_week(availabilities, shifts)
+		availabilities_by_week = Availability.get_availabilities_by_week(availabilities, shifts, week)
 
 		potential_assignments = []
 		
@@ -136,7 +146,7 @@ class Assignment < ApplicationRecord
 		end
 
 		real_average_user_hours_by_week = formatted_users.reduce(0) { |sum, user| sum + user[:assigned_hours] } / formatted_users.count
-		
+		succes_rate = (real_average_user_hours_by_week.to_f / potential_average_user_hours_by_week.to_f) * 100
 		{
 			week: week[:week],
 			total_shift_hours_by_week: week[:total_shift_hours_by_week],
@@ -144,7 +154,7 @@ class Assignment < ApplicationRecord
 			missing_hours: week[:total_shift_hours_by_week] - total_assigned_hours,
 			potential_average_user_hours_by_week: potential_average_user_hours_by_week,
 			real_average_user_hours_by_week: real_average_user_hours_by_week,
-			assert_percentage: (real_average_user_hours_by_week / potential_average_user_hours_by_week) * 100,
+			succes_rate: succes_rate,
 			assigned_users: formatted_users,
 			assignments_for_week: assignments_for_week,
 		}
@@ -169,9 +179,9 @@ class Assignment < ApplicationRecord
 			# if availability has 0 missing hours, add it to the best assignments and then skip it
 			if availability[:missing_hours] == 0
 				
-				availability[:assignment_start_at] = availability[:availability_start_at]
-				availability[:assignment_end_at] = availability[:availability_end_at]
-				availability[:total_assigned_hours] = get_total_hours(availability[:assignment_start_at], availability[:assignment_end_at])
+				availability[:potential_assignment_start_at] = availability[:availability_start_at]
+				availability[:potential_assignment_end_at] = availability[:availability_end_at]
+				availability[:total_assigned_hours] = get_total_hours(availability[:potential_assignment_start_at], availability[:potential_assignment_end_at])
 				
 				best_assignments << {
 					day: day_availabilities[:day],
@@ -213,17 +223,17 @@ class Assignment < ApplicationRecord
 				# pick greatest consecutive hours
 				hours_to_assign = hours_to_assign.max_by(&:length)
 				
-				assignment_start_at = hours_to_assign.first
-				assignment_end_at = hours_to_assign.last == assignment_start_at ? assignment_start_at + 1 : hours_to_assign.last
+				potential_assignment_start_at = hours_to_assign.first
+				potential_assignment_end_at = hours_to_assign.last == potential_assignment_start_at ? potential_assignment_start_at + 1 : hours_to_assign.last
 
 				# get the new missing hours
 				# transform [[10, 11], [16]] to [10, 11, 16]
 				missing_hours = array_of_missing_hours.delete_if { |e| hours_to_assign.include?(e) }
 				
 				# add relevant to the availability
-				availability[:assignment_start_at] = format_time(assignment_start_at)
-				availability[:assignment_end_at] = format_time(assignment_end_at)
-				availability[:total_assigned_hours] = get_total_hours(availability[:assignment_start_at], availability[:assignment_end_at])
+				availability[:potential_assignment_start_at] = format_time(potential_assignment_start_at)
+				availability[:potential_assignment_end_at] = format_time(potential_assignment_end_at)
+				availability[:total_assigned_hours] = get_total_hours(availability[:potential_assignment_start_at], availability[:potential_assignment_end_at])
 				
 				# add assignment to last.best_assignments
 				best_assignments.last[:day] = day_availabilities[:day]
@@ -241,9 +251,9 @@ class Assignment < ApplicationRecord
 			# this availability has missing hours
 			if availability[:missing_hours] > 0
 				
-				availability[:assignment_start_at] = availability[:availability_start_at]
-				availability[:assignment_end_at] = availability[:availability_end_at]
-				availability[:total_assigned_hours] = get_total_hours(availability[:assignment_start_at], availability[:assignment_end_at])
+				availability[:potential_assignment_start_at] = availability[:availability_start_at]
+				availability[:potential_assignment_end_at] = availability[:availability_end_at]
+				availability[:total_assigned_hours] = get_total_hours(availability[:potential_assignment_start_at], availability[:potential_assignment_end_at])
 
 				best_assignments << {
 					day: day_availabilities[:day],
@@ -320,6 +330,4 @@ class Assignment < ApplicationRecord
 
 		assigned_users
 	end
-
-
 end

@@ -25,6 +25,7 @@ class User < ApplicationRecord
                 phone: user.profile.phone,
                 image: user.profile.image_url,
                 role: user.profile.role,
+				color: user.profile.color,
                 profile_id: user.profile.id
 				
             }
@@ -61,7 +62,7 @@ class User < ApplicationRecord
         user = User.new({ email: params[:email], password: params[:password], password_confirmation: params[:password_confirmation] })
 
         # create new profile instance
-        user.profile = Profile.new( { first_name: params[:first_name], last_name: params[:last_name] } )
+        user.profile = Profile.new( { first_name: params[:first_name], last_name: params[:last_name], color: params[:color] } )
 
         # assign role if it's present
         user.profile.role = Profile.roles[params[:role]] if params[:role].present?

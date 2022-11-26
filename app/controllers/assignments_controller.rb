@@ -13,7 +13,7 @@ class AssignmentsController < ApplicationController
 
 	# POST /assignments
 	def create
-		@assignment = Assignment.assign(params)
+		@assignment = Assignment.assign(params[:service_id])
 
 		respond_with_success(@assignment)
 	end

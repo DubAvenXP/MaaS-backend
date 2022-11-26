@@ -1,5 +1,7 @@
 client_names = [ "Recorrido.cl", "Hospital San Jose"]
 
+Client.destroy_all
+
 client_names.each do |name|
     client = Client.new({
         name: name,

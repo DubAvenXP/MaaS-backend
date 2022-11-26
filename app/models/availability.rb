@@ -1,8 +1,6 @@
 class Availability < ApplicationRecord
 	include ErrorUtilities
 
-	after_create :execute_assignments
-
 	belongs_to :user
 	belongs_to :service
 	has_one :assignment
@@ -11,12 +9,18 @@ class Availability < ApplicationRecord
 	validates :end_at, presence: true
 
 	# This is method is used to create and update an availability
-	def self.upsert(availability, id)
+	def self.availability_manager(availability, id, action = nil)
+
+		if action == "delete"
+			prev_availability = Availability.find(id) unless id.nil?
+			prev_availability.destroy if prev_availability.present?
+			return
+		end
 
 		# get the service and user
 		service = Service.find(availability[:service_id])
 		user = User.find(availability[:user_id])
-		
+
 		# check if the service is active
 		return ErrorUtilities::generate_custom_error("service_id", "Service is inactive") unless service.active
 
@@ -119,6 +123,8 @@ class Availability < ApplicationRecord
 
 				total_hours = (availability.end_at - availability.start_at) / 1.hour
 
+				assignment = availability.assignment
+
 				{
 					id: availability.id,
 					user_id: availability.user_id,
@@ -131,8 +137,10 @@ class Availability < ApplicationRecord
 					availability_end_at: availability.end_at.strftime("%H:%M"),
 					shift_start_at: current_shift[:start_time],
 					shift_end_at: current_shift[:end_time],
-					shift_id: current_shift[:id]
+					shift_id: current_shift[:id],
+					assignment: availability.assignment
 				}
+				
 			end
 
 			# sort availabilities by missing hours in ascending order
@@ -149,8 +157,11 @@ class Availability < ApplicationRecord
 		end
 	end
 
-	def self.get_availabilities_by_week(availabilities, shifts)
+	def self.get_availabilities_by_week(availabilities, shifts, week)
+		
 		# group availabilities by week 
+		# availabilities = availabilities.where(start_at: week.beginning_of_week..week.end_of_week) if week.present?
+
 		availabilities_by_week = availabilities.group_by { |availability| availability.start_at.beginning_of_week..availability.start_at.end_of_week }
 
 		# total hours by shift
@@ -163,7 +174,7 @@ class Availability < ApplicationRecord
 
 		average_availabilities_by_day = (availabilities_by_days.reduce(0) { |sum, day|
 			sum + day[:total_users]
-		}) / availabilities_by_days.count
+		}) / availabilities_by_days.count if availabilities_by_days.present?
 
 		
 
@@ -207,10 +218,4 @@ class Availability < ApplicationRecord
 			end_time: end_time
 		}
 	end
-
-	private
-	def execute_assignments
-		# Assignment.assign(self)
-	end
-
 end
