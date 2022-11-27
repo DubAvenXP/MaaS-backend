@@ -27,11 +27,13 @@ class AvailabilitiesController < ApplicationController
 	private
 
 	def availability_responder(id, status, action)
-		availability = Availability.availability_manager(availability_params, id, action)
-
+		
 		if action == "delete"
+			availability = Availability.availability_manager(nil, id, action)
 			return respond_with_success(Assignment.assign(@availability.service.id), status)
 		end
+
+		availability = Availability.availability_manager(availability_params, id, action)
 
 		# custom validations
 		return respond_with_custom_errors(availability) if availability[:errors].present? 

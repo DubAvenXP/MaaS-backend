@@ -3,7 +3,7 @@ class ServicesController < ApplicationController
 
 	# GET /services
 	def index
-		respond_with_success(Service.all)
+		respond_with_success(Service.index)
 	end
 
 	# GET /services/1

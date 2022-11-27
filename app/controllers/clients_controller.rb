@@ -3,7 +3,7 @@ class ClientsController < ApplicationController
 
 	# GET /clients
 	def index
-		respond_with_success(Client.all)
+		respond_with_success(Client.index)
 	end
 
 	# GET /clients/1

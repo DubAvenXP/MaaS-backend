@@ -15,6 +15,21 @@ class Service < ApplicationRecord
 	validates :start_at, presence: true, comparison: { less_than: :end_at, greater_or_equal_than: Date.current }
 	validates :end_at, presence: true
 
+	def self.index
+		services = Service.all.map do |service|
+			{
+				id: service.id,
+				name: service.name,
+				description: service.description,
+				start_at: service.start_at.to_date,
+				end_at: service.end_at.to_date,
+				client_name: service.client.name
+			}
+		end
+
+		services
+	end
+
 	# this method shows the service with their associated shifts
 	def show
 		shifts = self.shifts.map do |shifts|
@@ -67,14 +82,18 @@ class Service < ApplicationRecord
 
 		# get shifts for the current service
 		shifts = self.shifts.select("id, day, start_time, end_time")
-
+		
+		
 		# format the shifts
 		shifts = shifts.map do |shift|
+			date = nil
+			date = availabilities[shift.day].first.start_at.to_date if availabilities[shift.day].present?
 			{
 				id: shift.id,
 				day: shift.day,
 				start_time: shift.start_time,
 				end_time: shift.end_time,
+				date: date,
 				availabilities: availabilities[shift.day] || []
 			}
 		end
@@ -88,7 +107,8 @@ class Service < ApplicationRecord
 			current_week: week.to_date,
 			next_week: next_week.to_date,
 			prev_week: prev_week.to_date,
-			shifts: shifts
+			shifts: shifts,
+			client_name: self.client.name
 		}
 
 		service
@@ -118,6 +138,7 @@ class Service < ApplicationRecord
 			name: self.name,
 			start_at: self.start_at.to_date,
 			end_at: self.end_at.to_date,
+			client_name: self.client.name,
 			current_week: week.to_date,
 			next_week: next_week.to_date,
 			prev_week: prev_week.to_date,

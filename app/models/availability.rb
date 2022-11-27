@@ -49,7 +49,7 @@ class Availability < ApplicationRecord
 		# id nil means that this excution is for create
 		if id.nil?
 			# check if the user has availability in the same day and service 
-			check_availabilities_in_same_day = Availability.where(user_id: user.id, service_id: service.id).where("(extract(isodow from availabilities.start_at)) - 1 = ?", Shift.days[day_of_week_for_availability])
+			check_availabilities_in_same_day = Availability.where(user_id: user.id, service_id: service.id).where("start_at::date = ?", start_at.to_date)
 
 			return ErrorUtilities::generate_custom_error("start_at", "User already has an availability for this service in the same day") if check_availabilities_in_same_day.count > 0
 		end
@@ -128,6 +128,7 @@ class Availability < ApplicationRecord
 				{
 					id: availability.id,
 					user_id: availability.user_id,
+					user_color: availability.user.profile.color,
 					user_full_name: availability.user.profile.first_name + " " + availability.user.profile.last_name,
 					total_available_hours: total_hours,
 					missing_hours: current_shift[:total_hours] - total_hours,
@@ -160,7 +161,7 @@ class Availability < ApplicationRecord
 	def self.get_availabilities_by_week(availabilities, shifts, week)
 		
 		# group availabilities by week 
-		# availabilities = availabilities.where(start_at: week.beginning_of_week..week.end_of_week) if week.present?
+		availabilities = availabilities.where(start_at: week.beginning_of_week..week.end_of_week) if week.present?
 
 		availabilities_by_week = availabilities.group_by { |availability| availability.start_at.beginning_of_week..availability.start_at.end_of_week }
 
