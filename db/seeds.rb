@@ -1,23 +1,16 @@
 # Using faker to generate fake data
 require "faker"
 
-User.create({
-    first_name: "Alejandro", 
-    last_name: "Dubon",
-    role: "admin",
-    email: "alejandrodubon88@gmail.com", 
-    password: "123456", 
-    password_confirmation: "123456"
-}).save
+load "db/seeds/users.rb"
+load "db/seeds/clients.rb"
+load "db/seeds/services.rb"
+load "db/seeds/shifts.rb"
+load "db/seeds/availabilities.rb"
 
-
-5.times do
-    password = "helloworld123"
-    User.create(
-        email: Faker::Internet.email,
-        password: password,
-        password_confirmation: password,
-        first_name: Faker::Name.first_name,
-        last_name: Faker::Name.last_name,
-    ).save
-end
+puts "\n*  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  \n"
+puts "#{User.all.count} users created"
+puts "#{Client.all.count} clients created"
+puts "#{Service.all.count} services created"
+puts "#{Shift.all.count} shifts created"
+puts "#{Availability.all.count} availabilities created"
+puts "\n*  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  *  -  \n"

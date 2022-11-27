@@ -49,5 +49,8 @@ group :development do
   # Faker is a library for generating fake data such as names, addresses, and phone numbers
   gem 'faker', '~> 3.0'
 
+  # Automatic Rails code style checking tool.
+  # gem 'rubocop-rails', '~> 2.17', '>= 2.17.3'
+
 end
 
