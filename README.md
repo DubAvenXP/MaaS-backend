@@ -19,6 +19,11 @@ Disponibilidades: Cada usuario puede marcar n cantidad de disponibilidades, las 
 Asignaciones: Cada usuario puede ser asignado a un turno dependiendo de sus disponibilidades. Cada asignación tiene un horario de inicio y un horario de fin. Cada asignación tiene un usuario y un turno.
 
 
+## Modelo entidad relación
+
+![MER](https://res.cloudinary.com/djblopoih/image/upload/v1669544448/samples/modelo_relacional_maas_skpus6.png)
+
+
 # Pasos para correr el proyecto
 * Ruby version: 3.0.4
 * Rails version: 7.0.4
